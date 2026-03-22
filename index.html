@@ -3,19 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GDrive Direct Link Generator</title>
+    <title>GDrive Direct Link Generator | Randun Labs</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 450px; text-align: center; border: 1px solid #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 450px; text-align: center; border: 1px solid #333; position: relative; }
         h1 { font-size: 1.5rem; margin-bottom: 20px; color: #00ff88; }
-        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #444; border-radius: 6px; background: #2d2d2d; color: white; box-sizing: border-box; outline: none; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #444; border-radius: 6px; background: #2d2d2d; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
         input:focus { border-color: #00ff88; }
+        
         button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
         .btn-convert { background: #00ff88; color: #000; }
         .btn-convert:hover { background: #00cc6e; }
-        .btn-copy { background: #333; color: #00ff88; border: 1px solid #00ff88; display: none; }
+        
+        /* New Button Styles */
+        .action-row { display: flex; gap: 10px; display: none; margin-top: 15px; }
+        .action-row button { margin-bottom: 0; }
+        .btn-copy { background: #333; color: #00ff88; border: 1px solid #00ff88; }
         .btn-copy:hover { background: #00ff88; color: #000; }
-        #result { margin-top: 15px; font-size: 0.9rem; word-break: break-all; color: #bbb; background: #111; padding: 10px; border-radius: 4px; display: none; }
+        .btn-test { background: #333; color: #4da6ff; border: 1px solid #4da6ff; }
+        .btn-test:hover { background: #4da6ff; color: #000; }
+        .btn-clear { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; display: none; margin-top: 10px; }
+        .btn-clear:hover { background: #ff4d4d; color: #fff; }
+
+        #result { margin-top: 15px; font-size: 0.9rem; word-break: break-all; color: #bbb; background: #111; padding: 10px; border-radius: 4px; display: none; border: 1px solid #333; }
+        #errorMsg { color: #ff4d4d; font-size: 0.85rem; display: none; margin-bottom: 15px; }
+
+        /* Footer Style */
+        .footer { margin-top: 30px; font-size: 0.85rem; color: #666; letter-spacing: 0.5px; }
+        .footer span { color: #00ff88; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -23,17 +38,35 @@
 <div class="card">
     <h1>GDrive Direct Link</h1>
     <input type="text" id="urlInput" placeholder="Paste Google Drive Link here...">
-    <button class="btn-convert" onclick="convert()">Generate Direct Link</button>
+    <div id="errorMsg">⚠️ Invalid Google Drive Link! Please check and try again.</div>
+    
+    <button id="convertBtn" class="btn-convert" onclick="convert()">Generate Direct Link</button>
     
     <div id="result"></div>
-    <button id="copyBtn" class="btn-copy" onclick="copyLink()">Copy to Clipboard</button>
+    
+    <div class="action-row" id="actionRow">
+        <button id="copyBtn" class="btn-copy" onclick="copyLink()">Copy Link</button>
+        <button id="testBtn" class="btn-test" onclick="testLink()">Test Download</button>
+    </div>
+    
+    <button id="clearBtn" class="btn-clear" onclick="clearInput()">Clear & Start Over</button>
+</div>
+
+<div class="footer">
+    Created by <span>Randun Labs</span>
 </div>
 
 <script>
     function convert() {
-        const input = document.getElementById('urlInput').value;
+        const input = document.getElementById('urlInput').value.trim();
         const resultDiv = document.getElementById('result');
-        const copyBtn = document.getElementById('copyBtn');
+        const actionRow = document.getElementById('actionRow');
+        const clearBtn = document.getElementById('clearBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const convertBtn = document.getElementById('convertBtn');
+        
+        // Reset Error State
+        errorMsg.style.display = 'none';
         
         // Regex to extract ID from Drive URL
         const match = input.match(/\/d\/(.+?)\/(?:view|edit|usp)/) || input.match(/id=(.+?)(?:&|$)/);
@@ -41,17 +74,52 @@
         if (match && match[1]) {
             const directLink = `https://drive.google.com/uc?export=download&id=${match[1]}`;
             resultDiv.innerText = directLink;
+            
+            // Show success elements
             resultDiv.style.display = 'block';
-            copyBtn.style.display = 'block';
+            actionRow.style.display = 'flex';
+            clearBtn.style.display = 'block';
+            convertBtn.style.display = 'none'; // Hide generate button to save space
         } else {
-            alert("Invalid Google Drive Link!");
+            // Show inline error
+            errorMsg.style.display = 'block';
+            resultDiv.style.display = 'none';
+            actionRow.style.display = 'none';
+            clearBtn.style.display = 'none';
         }
     }
 
     function copyLink() {
         const text = document.getElementById('result').innerText;
         navigator.clipboard.writeText(text);
-        alert("Link copied!");
+        
+        // Visual feedback instead of alert
+        const copyBtn = document.getElementById('copyBtn');
+        const originalText = copyBtn.innerText;
+        copyBtn.innerText = "✅ Copied!";
+        copyBtn.style.background = "#00ff88";
+        copyBtn.style.color = "#000";
+        
+        setTimeout(() => {
+            copyBtn.innerText = originalText;
+            copyBtn.style.background = "#333";
+            copyBtn.style.color = "#00ff88";
+        }, 2000);
+    }
+
+    function testLink() {
+        const link = document.getElementById('result').innerText;
+        window.open(link, '_blank');
+    }
+
+    function clearInput() {
+        document.getElementById('urlInput').value = '';
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('actionRow').style.display = 'none';
+        document.getElementById('clearBtn').style.display = 'none';
+        document.getElementById('errorMsg').style.display = 'none';
+        document.getElementById('convertBtn').style.display = 'block';
+        document.getElementById('urlInput').focus();
     }
 </script>
 
