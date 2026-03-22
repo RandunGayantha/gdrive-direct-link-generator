@@ -1,6 +1,6 @@
 # 🚀 GDrive Direct Link Generator
 
-**Live Link:** [https://YOUR_USERNAME.github.io/gdrive-direct-link-generator/](https://YOUR_USERNAME.github.io/gdrive-direct-link-generator/)
+**Live Link:** [https://randungayantha.github.io/gdrive-direct-link-generator/](https://randungayantha.github.io/gdrive-direct-link-generator/)
 
 ---
 
